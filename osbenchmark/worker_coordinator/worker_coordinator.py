@@ -1566,9 +1566,13 @@ class AsyncExecutor:
                 if self.cancel.is_set():
                     self.logger.info("User cancelled execution.")
                     break
+                self.logger.info("Operation name : %s", params.get('name', ''))
+                self.logger.info("Total start time: %s", total_start)
+                self.logger.info("Expected schedule time: %s", expected_scheduled_time)
                 absolute_expected_schedule_time = total_start + expected_scheduled_time
                 throughput_throttled = expected_scheduled_time > 0
                 if throughput_throttled:
+                    self.logger.info("Throughput is throttled!!!")
                     rest = absolute_expected_schedule_time - time.perf_counter()
                     if rest > 0:
                         await asyncio.sleep(rest)
@@ -1599,6 +1603,7 @@ class AsyncExecutor:
                 throughput = request_meta_data.pop("throughput", None)
                 # Do not calculate latency separately when we run unthrottled. This metric is just confusing then.
                 latency = request_end - absolute_expected_schedule_time if throughput_throttled else service_time
+                self.logger.info("Latency for this operation = %s", latency)
                 # If this task completes the parent task we should *not* check for completion by another client but
                 # instead continue until our own runner has completed. We need to do this because the current
                 # worker (process) could run multiple clients that execute the same task. We do not want all clients to
@@ -1616,6 +1621,8 @@ class AsyncExecutor:
                 else:
                     progress = percent_completed
 
+                self.logger.info("Processing time : %s", processing_time)
+                self.logger.info("Throughput : %s", throughput)
                 self.sampler.add(self.task, self.client_id, sample_type, request_meta_data,
                                  absolute_processing_start, request_start,
                                  latency, service_time, processing_time, throughput, total_ops, total_ops_unit,
