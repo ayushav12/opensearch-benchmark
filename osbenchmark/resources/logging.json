@@ -40,7 +40,7 @@
   "loggers": {
     "opensearch": {
       "handlers": ["benchmark_log_handler"],
-      "level": "WARNING",
+      "level": "DEBUG",
       "propagate": false
     },
     "benchmark.profile": {
